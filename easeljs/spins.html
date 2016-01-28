@@ -1,0 +1,70 @@
+<html>
+<head>
+	<script src="https://code.createjs.com/easeljs-0.8.2.min.js"></script>
+	<script src="https://code.createjs.com/tweenjs-0.6.2.min.js"></script>
+	<script src="https://code.createjs.com/preloadjs-0.6.2.min.js"></script>
+</head>
+<body>
+	<body onload="init();">
+		<canvas id="demoCanvas" width="500" height="300"></canvas>
+
+		<script>
+			var preload = new createjs.LoadQueue(true, 'assets/');
+			var manifest = [
+			    {src: 'ball.png', id: 'ball', type: 'sprite', x: 100, y: 100},
+			]
+			preload.loadManifest(manifest);
+
+			var stage = new createjs.Stage("demoCanvas");
+            //var bmp;
+
+			function init() {
+
+				var circle = new createjs.Shape();
+				circle.graphics.beginFill("DeepSkyBlue").drawCircle(0, 0, 50);
+				circle.x = 100;
+				circle.y = 100;
+				stage.addChild(circle);
+
+				// createjs.Tween.get(circle, { loop: true })
+				// .to({ x: 400 }, 1000, createjs.Ease.getPowInOut(4))
+				// .to({ alpha: 0, y: 175 }, 500, createjs.Ease.getPowInOut(2))
+				// .to({ alpha: 0, y: 225 }, 100)
+				// .to({ alpha: 1, y: 200 }, 500, createjs.Ease.getPowInOut(2))
+				// .to({ x: 100 }, 800, createjs.Ease.getPowInOut(2));
+
+				// createjs.Ticker.setFPS(60);
+				// stage.update();  <-- not needed because Tween has it's own way of performing updates
+				createjs.Ticker.addEventListener("tick", handleTick);
+			}
+
+			function handleTick(event) {
+				stage.update();
+			}
+
+			function loadImage() {
+			  // http://createjs.com/docs/preloadjs/classes/LoadQueue.html
+			  // fileload: A single file has completed loading.
+			  preload.addEventListener("fileload", handleFileComplete); 
+			  preload.loadFile({id:"ball", src:"ball.png"});
+			}
+			function handleFileComplete(event) {
+			  var item = event.item; // A reference to the item that was passed in to the LoadQueue
+			  var type = item.type;
+              //bmp = new createjs.Bitmap(item);
+
+			  document.body.appendChild(event.result);
+			  event.result.addEventListener("click", onBallClick)
+			}
+			function onBallClick(event) 
+			{ 
+				var ballImage = preload.getResult("assets/ball.png");
+				var bitmap = new createjs.Bitmap(ballImage);
+				bitmap.scaleX = 0.5;
+				bitmap.rotation = 90;
+				stage.update();
+			}
+		</script>
+		<button onclick="loadImage();" class="load-image">Load Image</button>
+	</body>
+	</html>

@@ -1,0 +1,70 @@
+<html>
+    <head>
+    	<script src="https://rawgithub.com/craftyjs/Crafty/release/dist/crafty-min.js"></script>
+        <script src="spins.js"></script>
+    </head>
+    <body>
+    	<div id="spins"></div>
+    	<script>
+	    	Crafty.init(500,350, document.getElementById('spins'));
+	    	var mySquare = Crafty.e('2D, DOM, Color')
+	    			.attr({x: 0, y: 0, w: 100, h: 100}).color('red')
+	    			.bind('Click', function(MouseEvent)
+	    			{
+						alert('clicked', MouseEvent);
+					});
+
+/*			var myEntity = Crafty.e('2D, Canvas, Color, Mouse')
+			.attr({x: 10, y: 10, w: 40, h: 40})
+			.color('red')
+			.bind('Click', function(MouseEvent){
+			  alert('clicked', MouseEvent);
+			});
+*/
+			mySquare.bind('MouseUp', function(e) {
+			   if( e.mouseButton == Crafty.mouseButtons.LEFT )
+			       Crafty.log("Clicked right button");
+			});
+
+			var assetsObj = {
+			    // "audio": {
+			    //     "beep": ["beep.wav", "beep.mp3", "beep.ogg"],
+			    //     "boop": "boop.wav",
+			    //     "slash": "slash.wav"
+			    // },
+			    "images": ["compass.bmp"],
+			    // "sprites": {
+			    //     "animals.png": {
+			    //         "tile": 50,
+			    //         "tileh": 40,
+			    //         "map": { "ladybug": [0,0], "lazycat": [0,1], "ferociousdog": [0,2] }
+			    //         "paddingX": 5,
+			    //         "paddingY": 5,
+			    //         "paddingAroundBorder": 10
+			    //     },
+			    //     "vehicles.png": {
+			    //         "tile": 150,
+			    //         "tileh": 75,
+			    //         "map": { "car": [0,0], "truck": [0,1] }
+			    //     }
+			    },
+			};
+
+			//var isLoaded = !!Crafty.assets["compass.png"];
+
+			Crafty.load(assetsObj, // preload assets
+			    function() { //when loaded
+			        Crafty.scene("main"); //go to main scene
+			        //Crafty.audio.play("boop"); //Play the audio file
+			        Crafty.e('2D, DOM, compass'); // create entity with sprite
+			    },
+
+			    function(e) { //progress
+			    },
+
+			    function(e) { //uh oh, error loading
+			    }
+			);
+    	</script>
+    </body>
+</html>
