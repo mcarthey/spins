@@ -1,3 +1,14 @@
+var wheelObject = function(bmp, color) {    
+	return { 
+	  bitmap : bmp,  // array position
+	  // yPos : y,
+	  // rotation : z,
+	  color : color
+	  // childIndex = createjs.getChildIndex(), // needed for updates
+	  // bounds // need bounds of image for touch detection?
+	};
+};
+
 function init() {
 	//initialize the stage
 	canvas = document.getElementById("tutorialCanvas");
@@ -32,38 +43,32 @@ function start() {
 	background = new createjs.Bitmap(backgroundImage);
 	stage.addChild(background);
 
-	startLabel = new createjs.Text("","18px Verdana","red");
-	stage.addChild(startLabel);
+	//startLabel = new createjs.Text("","18px Verdana","red");
+	//stage.addChild(startLabel);
 
 	// to get onMouseOver & onMouseOut events, we need to enable them on the stage:
-	stage.enableMouseOver();
+	//stage.enableMouseOver();
 	
-	output = new createjs.Text("Test press, click, doubleclick, mouseover, and mouseout", "14px Arial");
-	output.x = output.y = 10;
-	stage.addChild(output);
+	// output = new createjs.Text("Test press, click, doubleclick, mouseover, and mouseout", "14px Arial", "white");
+	// output.x = output.y = 10;
+	// stage.addChild(output);
 
 	// Need to generate the images and store the values in the object
 	// Store so they can be accessed efficiently later via touch events
-	// var wheelObject = function(x, y, z, color) {    
-	// 	return { 
-	// 	  xPos : x,  // array position
-	// 	  yPos : y,
-	// 	  rotation : z,
-	// 	  color : color,
-	// 	  childIndex = createjs.getChildIndex(), // needed for updates
-	// 	  bounds // need bounds of image for touch detection?
-	// 	};
-	// };
+	// wheel[i][j] = new wheelObject(i,j,randomRange(4)+1,randomColor());
 
+	balls = new Array();
 	for (i=0;i<2;i++)
 	{
 		ball = new createjs.Bitmap(ballImage);
-		ball.name = "ball";
-		ball.addEventListener("click", onBallClick);
-		ball.on("click", handleMouseEvent);
-		ball.on("dblclick", handleMouseEvent);
-		ball.on("mouseover", handleMouseEvent);
-		ball.on("mouseout", handleMouseEvent);		
+
+		// function bindClick(i) {
+		//    return function(){
+		//             console.log("you clicked region number " + i);
+		//           });
+		// }
+
+		ball.name = "ball" + i;
 
 		// alert ('constructor name: ' + ball.constructor.name);  // undefined
 		// alert ('typeof ball: ' + typeof ball);  // object
@@ -73,16 +78,47 @@ function start() {
 		newX = b.x + (b.width * i);
 		ball.x = newX;
 
-		//ball.cache(newX, b.y, b.width, b.height);
-		startLabel.text += " i:"+i+":x:"+newX;
+		balls.push(ball);
 
-		stage.addChild(ball);
+		//ball.cache(newX, b.y, b.width, b.height);
+		//startLabel.text += " i:"+i+":x:"+newX;
+
+		(function(index) {
+		        balls[index].addEventListener("click", function() {
+		           balls[index].scaleX = 0.5;
+		         })
+		   })(i);
+
+		stage.addChild(balls[i]);
+
+		// ball.addEventListener("click", onBallClick);
+		//ball.on("click", onBallClick);
+		// Need to track each separately - hash array??
+
+		//balls[i].addEventListener("click", onBallClick(i));
+
+		// balls[i].on("click", handleMouseEvent);
+		// balls[i].on("dblclick", handleMouseEvent);
+		// balls[i].on("mouseover", handleMouseEvent);
+		// balls[i].on("mouseout", handleMouseEvent);		
+
+		// http://stackoverflow.com/questions/17981437/how-to-add-event-listeners-to-an-array-of-objects
 	}
-	enableCache();
+
+	//enableCache();
 
 	createjs.Ticker.setFPS(1);		
 	createjs.Ticker.on("tick", tick);
 
+}
+
+function onBallClick(i) {
+	debugger;
+	balls[i].scaleX = 0.5;
+	 // var matrix = new createjs.ColorMatrix().adjustHue(100);
+	 // ball.filters = [
+	 //     new createjs.ColorMatrixFilter(matrix)
+	 // ];
 }
 
 // http://www.createjs.com/tutorials/Mouse%20Interaction/events.html
@@ -134,16 +170,8 @@ function drawObjects() {
 		// document.write(', rotation: ' + wheel[i][j].rotation); 
 		// document.write(', color: ' + wheel[i][j].color); 
 		// document.write('<br/>');
+		}
 	}
-}
-}
-
-function onBallClick(event) {
-	debugger;
-	 // var matrix = new createjs.ColorMatrix().adjustHue(100);
-	 // ball.filters = [
-	 //     new createjs.ColorMatrixFilter(matrix)
-	 // ];
 }
 
 function r(max) {
@@ -153,6 +181,10 @@ function r(max) {
 
 function tick(event) {
 
+    stage.update(event);	//update the stage
+}
+
+function updateCache() {
 	numChildren = stage.getNumChildren();
 
 	for (i = 0; i < numChildren; i++) {
@@ -165,5 +197,5 @@ function tick(event) {
 	 	     shape.updateCache();
 		}
 	}
-    stage.update(event);	//update the stage
+
 }
