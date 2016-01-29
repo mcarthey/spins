@@ -66,28 +66,59 @@ function start() {
 
 	stage.addChild(ball);
 
+	shape = new createjs.Shape().set({x:100,y:100});
+	shape.graphics.beginFill("#ff0000").drawCircle(100,50,40);
+	shape.addEventListener("click", onShapeClick);
+
+	stage.addChild(shape);
+
 	//adding the ground image and positioning it
 	ground = new createjs.Bitmap(groundImage);
-	stage.addChild(ground);
 	ground.y = 164;
+	stage.addChild(ground);
+
+    debugLabel = new createjs.Text("DEBUG", "bold 12px Arial", "#F00");
+    stage.addChild(debugLabel);
 
 	//updating the stage
 	stage.update();
 }
 
+function onShapeClick() {
+
+	shape.filters = [
+		new createjs.ColorFilter(0,0,0,1, 0,0,255,0)
+	];
+	shape.cache(100, 50, 100, 100);
+	stage.update();
+} 
 function onBallClick() {
+
 	ball.rotation += 10;
 	ball.filters = [
-     new createjs.ColorFilter(0,0,0,1, r(255),r(255),r(255),0) // red,green,blue,alpha multiplier/offset
+     new createjs.ColorFilter(0,0,0,1, r(255),r(255),r(255),0) // RGBA multiplier/offset
      ];
+
 
 	 // var matrix = new createjs.ColorMatrix().adjustHue(100);
 	 // ball.filters = [
 	 //     new createjs.ColorMatrixFilter(matrix)
 	 // ];
 
-	 ball.cache(-50, -50, ballImage.width, ballImage.height);
+	bounds = ball.getBounds();
+	debugLabel.text = "x:"+bounds.x+" , y:"+bounds.y+" , height:"+bounds.height+" , width:"+bounds.width;
 
+	// obj.setBounds(bounds.x, bounds.y, bounds.width, bounds.height);
+	// getBounds will now use the set values, instead of recalculating
+
+    // example:
+    // shape.cache(-radius, -radius, radius * 2, radius * 2);
+
+     // cache ( x,  y,  width,  height,  [scale=1] )
+	 //ball.cache(80,80, ballImage.width/2, ballImage.height/2);
+	 ball.cache(bounds.x, bounds.y, bounds.height, bounds.width);
+    
+	 //stage.setChildIndex( ball, stage.getNumChildren()-1);
 	 stage.update();
 }
 
