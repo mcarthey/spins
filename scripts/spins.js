@@ -1,9 +1,11 @@
 var wheelObject = function(x, y, z, color) {    
 	return { 
-	  xPos : x,
+	  xPos : x,  // array position
 	  yPos : y,
 	  rotation : z,
-	  color : color
+	  color : color,
+	  childIndex = createjs.getChildIndex(), // needed for updates
+	  bounds // need bounds of image for touch detection?
 	};
 };
 
