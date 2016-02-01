@@ -1,3 +1,51 @@
+// http://stackoverflow.com/questions/6429959/objects-inside-objects-in-javascript
+// http://stackoverflow.com/questions/1704618/what-is-the-difference-between-var-thing-and-function-thing-in-javascript/1704981#1704981
+var SomeObject = function() {
+    var self          = this;
+    var privateMember = "I am a private member";
+    var privateMethod = function() {
+        console.log(self.publicMember);
+    };
+
+    this.publicMember = "I am a public member";
+    this.publicMethod = function() {
+        console.log(privateMember, this.publicMember);
+    };
+    this.privateMethodWrapper = function() {
+        privateMethod();
+    }
+};
+
+var ShapeObject = function() {
+    this.initialize = function(n, s) {
+    	this.name = n;
+    	this.shape = s;
+    	this.rotation = this.randomRange()+1; 
+    	this.color = this.randomColor();
+    };
+
+    this.randomColor = function() {
+    	var colors = [
+    		'orange',
+    		'red',
+    		'blue',
+    		'green'
+    	];
+    	return colors[this.randomRange(colors.length)];
+    }
+
+    this.randomRange = function(max) {
+    	// return 0 based range of values up to max
+    	return Math.floor(Math.random()*max);
+    }
+};
+
+
+// var o = new SomeObject();
+// console.log(typeof o.privateMethod, typeof o.publicMethod, typeof o.privateMethodWrapper);
+// o.privateMethodWrapper();
+// o.publicMethod();
+
 var wheelObject = function(bmp, color) {    
 	return { 
 	  bitmap : bmp,  // array position
@@ -43,6 +91,42 @@ function start() {
 	background = new createjs.Bitmap(backgroundImage);
 	stage.addChild(background);
 
+
+	// CREATE ARRAY OF SHAPE OBJECTS
+	shapes = new Array();
+	for (i=0;i<2;i++)
+	{
+		var theShape = new createjs.Shape();
+		theShape.graphics.setStrokeStyle(1)
+			.beginStroke(createjs.Graphics.getRGB(0, 0, 0))
+			.beginFill(createjs.Graphics.getRGB(255,255,51))
+			.drawCircle(0, 0, 20)
+			.moveTo(0,-20)
+			.lineTo(0,0)
+			.moveTo(0,0)
+			.lineTo(20,0);
+		// theShape.x = 250;
+		// theShape.y = 40;
+		//stage.addChild(theShape);
+
+		//shape.name = "shape" + i;
+
+		// TODO - set all values for object
+		(function() {
+	        theShape.addEventListener("click", function() {
+	           theShape.scaleX = 2.0;
+	         })
+		})(i);
+
+		sObject = new ShapeObject();
+		sObject.initialize("shape"+i, theShape);
+
+		shapes.push(sObject);
+
+	}	
+
+	drawShapes();
+
 	//startLabel = new createjs.Text("","18px Verdana","red");
 	//stage.addChild(startLabel);
 
@@ -74,6 +158,7 @@ function start() {
 		// alert ('typeof ball: ' + typeof ball);  // object
 		// alert ('typeof Bitmap: ' + typeof Bitmap);  // undefined
 
+		// TODO USE THIS WHEN LOADING
 		b = ball.getBounds();
 		newX = b.x + (b.width * i);
 		ball.x = newX;
@@ -138,21 +223,51 @@ function enableCache() {
 		// alert ('constructor name: ' + shape.constructor.name);  // undefined
 		// alert ('typeof shape: ' + typeof shape);  // object
 		// alert ('typeof Bitmap: ' + typeof Bitmap);  // undefined
-		if (getType(shape) === '[object Object]') {
+		if (getType(shape) === '[object Object]' && shape.name !== null && shape.name.substring(0,5) == "shape") {
+
 			b = shape.getBounds();
 			shape.cache(b.x, b.y, b.width, b.height);
-			ball.filters = [
-				new createjs.ColorFilter(0,0,0,1, r(255),r(255),r(255),0)
-			];
+			// shape.filters = [
+			// 	new createjs.ColorFilter(0,0,0,1, r(255),r(255),r(255),0)
+			// ];
 		}
 	}
 }
+
+	function toggleCache(value) {
+		// iterate all the children except the fpsLabel, and set up the cache:
+		var l = stage.getNumChildren() - 1;
+
+		for (var i = 0; i < l; i++) {
+			var shape = stage.getChildAt(i);
+			if (value) {
+				shape.cache(-radius, -radius, radius * 2, radius * 2);
+			} else {
+				shape.uncache();
+			}
+		}
+	}
+
+
 
 // https://toddmotto.com/understanding-javascript-types-and-reliable-type-checking/
 // http://stackoverflow.com/questions/1249531/how-to-get-a-javascript-objects-class
 var getType = function (elem) {
   return Object.prototype.toString.call(elem);
 };
+
+function drawShapes () 
+{
+	pos = 150;
+	for (i=0;i<2;i++)
+	{
+		s = shapes[i].shape;
+		s.x = pos;
+		s.y = 40;
+		stage.addChild(s);
+		pos = 250;
+	}
+}
 
 function drawObjects() {
 	const xDIM = 10;
