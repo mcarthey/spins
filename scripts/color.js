@@ -16,28 +16,51 @@ var SomeObject = function() {
     }
 };
 
+// var a = new Array(); // or just []
+// a[0] = 0
+// a['one'] = 1;
+// a['two'] = 2;
+// a['three'] = 3;
+
+// for (var k in a) {
+//     if (a.hasOwnProperty(k)) {
+//         alert('key is: ' + k + ', value is: ' + a[k]);
+//     }
+// }
+// alert(a.length);
+var colors = [
+	'orange',
+	'red',
+	'blue',
+	'green'
+];
+
 var ShapeObject = function() {
-    this.initialize = function(n, s) {
-    	this.name = n;
-    	this.shape = s;
-    	this.rotation = this.randomRange()+1; 
-    	this.color = this.randomColor();
-    };
+    	this.name;
+    	this.shape;
+    	this.rotation;
+    	this.color;
 
-    this.randomColor = function() {
-    	var colors = [
-    		'orange',
-    		'red',
-    		'blue',
-    		'green'
-    	];
-    	return colors[this.randomRange(colors.length)];
-    }
+    // this.randomColor = function() {
+    // 	var colors = [
+    // 		'orange',
+    // 		'red',
+    // 		'blue',
+    // 		'green'
+    // 	];
+    // 	var RGB = [
+    // 		'255,165,0,1',
+    // 		'255,0,0,1',
+    // 		'0,0,255,1',
+    // 		'0,255,0,1'
+    // 	];
+    // 	return colors[this.randomRange(colors.length)];
+    // }
 
-    this.randomRange = function(max) {
-    	// return 0 based range of values up to max
-    	return Math.floor(Math.random()*max);
-    }
+    // this.randomRange = function(max) {
+    // 	// return 0 based range of values up to max
+    // 	return Math.floor(Math.random()*max);
+    // }
 };
 
 
@@ -56,6 +79,8 @@ var wheelObject = function(bmp, color) {
 	  // bounds // need bounds of image for touch detection?
 	};
 };
+
+var shapes;
 
 function init() {
 	//initialize the stage
@@ -112,20 +137,28 @@ function start() {
 		//shape.name = "shape" + i;
 
 		// TODO - set all values for object
-		(function() {
-	        theShape.addEventListener("click", function() {
-	           theShape.scaleX = 2.0;
-	         })
-		})(i);
+		theShape.setBounds(-20,-20,40,40);
 
 		sObject = new ShapeObject();
-		sObject.initialize("shape"+i, theShape);
-
+		//sObject.initialize("shape"+i, theShape);
+		sObject.shape = theShape;
+		sObject.name = "shape"+i;
+		thisColor = colors[randomRange(colors.length)];
+		sObject.color = thisColor;  // setting to a string WORKS??  WTF??
+		console.log('start:color:'+sObject.color);
 		shapes.push(sObject);
+ 
+		(function(index) {
+	        shapes[index].shape.addEventListener("click", function() {
+	           shapes[index].shape.scaleX = 2.0;
+	         })
+		})(i);
 
 	}	
 
 	drawShapes();
+
+	enableCache();
 
 	//startLabel = new createjs.Text("","18px Verdana","red");
 	//stage.addChild(startLabel);
@@ -215,26 +248,25 @@ function handleMouseEvent(evt) {
 }
 
 function enableCache() {
-	// iterate all the children except the fpsLabel, and set up the cache:
-	var l = stage.getNumChildren();
 
-	for (var i = 0; i < l; i++) {
-		var shape = stage.getChildAt(i);
-		// alert ('constructor name: ' + shape.constructor.name);  // undefined
-		// alert ('typeof shape: ' + typeof shape);  // object
-		// alert ('typeof Bitmap: ' + typeof Bitmap);  // undefined
-		if (getType(shape) === '[object Object]' && shape.name !== null && shape.name.substring(0,5) == "shape") {
+		// var color  = '0x'+(Math.random()*0xFFFFFF<<0).toString(16);
+	for (i=0;i<2;i++)
+	{
+		// Draw object
+		s = shapes[i];
+		b = s.shape.getBounds();	
+		console.log('enableCache:color:'+s.color);
+		var filter = new createjs.ColorFilter(i,1,1,1);
 
-			b = shape.getBounds();
-			shape.cache(b.x, b.y, b.width, b.height);
-			// shape.filters = [
-			// 	new createjs.ColorFilter(0,0,0,1, r(255),r(255),r(255),0)
-			// ];
-		}
+		s.shape.filters = [ filter ];
+		s.shape.cache(b.x, b.y, b.width, b.height);
+
 	}
 }
 
 	function toggleCache(value) {
+
+
 		// iterate all the children except the fpsLabel, and set up the cache:
 		var l = stage.getNumChildren() - 1;
 
@@ -261,11 +293,16 @@ function drawShapes ()
 	pos = 150;
 	for (i=0;i<2;i++)
 	{
-		s = shapes[i].shape;
-		s.x = pos;
-		s.y = 40;
-		stage.addChild(s);
+		// Draw object
+		s = shapes[i];
+		console.log('drawShapes:color:'+s.color);
+
+		s.shape.x = pos;
+		s.shape.y = 40;
+
+		stage.addChild(s.shape);
 		pos = 250;
+
 	}
 }
 
@@ -289,7 +326,7 @@ function drawObjects() {
 	}
 }
 
-function r(max) {
+function randomRange(max) {
 	// return 0 based range of values up to max
 	return Math.floor(Math.random()*max);
 }
@@ -297,7 +334,7 @@ function r(max) {
 function tick(event) {
 
     stage.update(event);	//update the stage
-}
+}	
 
 function updateCache() {
 	numChildren = stage.getNumChildren();
