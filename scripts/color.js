@@ -1,88 +1,17 @@
-// http://stackoverflow.com/questions/6429959/objects-inside-objects-in-javascript
-// http://stackoverflow.com/questions/1704618/what-is-the-difference-between-var-thing-and-function-thing-in-javascript/1704981#1704981
-var SomeObject = function() {
-    var self          = this;
-    var privateMember = "I am a private member";
-    var privateMethod = function() {
-        console.log(self.publicMember);
-    };
+var shapes;
+var radius = 35;
 
-    this.publicMember = "I am a public member";
-    this.publicMethod = function() {
-        console.log(privateMember, this.publicMember);
-    };
-    this.privateMethodWrapper = function() {
-        privateMethod();
-    }
-};
-
-// var a = new Array(); // or just []
-// a[0] = 0
-// a['one'] = 1;
-// a['two'] = 2;
-// a['three'] = 3;
-
-// for (var k in a) {
-//     if (a.hasOwnProperty(k)) {
-//         alert('key is: ' + k + ', value is: ' + a[k]);
-//     }
-// }
-// alert(a.length);
-var colors = [
-	'orange',
-	'red',
-	'blue',
-	'green'
-];
-
-var ShapeObject = function() {
+var ShapeObject = function() 
+{
     	this.name;
     	this.shape;
     	this.rotation;
     	this.color;
-
-    // this.randomColor = function() {
-    // 	var colors = [
-    // 		'orange',
-    // 		'red',
-    // 		'blue',
-    // 		'green'
-    // 	];
-    // 	var RGB = [
-    // 		'255,165,0,1',
-    // 		'255,0,0,1',
-    // 		'0,0,255,1',
-    // 		'0,255,0,1'
-    // 	];
-    // 	return colors[this.randomRange(colors.length)];
-    // }
-
-    // this.randomRange = function(max) {
-    // 	// return 0 based range of values up to max
-    // 	return Math.floor(Math.random()*max);
-    // }
+    	this.command;
 };
 
-
-// var o = new SomeObject();
-// console.log(typeof o.privateMethod, typeof o.publicMethod, typeof o.privateMethodWrapper);
-// o.privateMethodWrapper();
-// o.publicMethod();
-
-var wheelObject = function(bmp, color) {    
-	return { 
-	  bitmap : bmp,  // array position
-	  // yPos : y,
-	  // rotation : z,
-	  color : color
-	  // childIndex = createjs.getChildIndex(), // needed for updates
-	  // bounds // need bounds of image for touch detection?
-	};
-};
-
-var shapes;
-
-function init() {
+function init() 
+{
 	//initialize the stage
 	canvas = document.getElementById("tutorialCanvas");
 	stage = new createjs.Stage(canvas);
@@ -93,200 +22,89 @@ function init() {
 
 	//adding our files to the queue
 	preload.loadFile({id: "background", src:"images/background.jpg"});
-	preload.loadManifest([{id: "ball", src:"images/glass-soccer.png"}]);
-
-	generateObjects();
-
 }
 
-//this function is called when everyhing is loaded
-function handleComplete() {
-	//getting the loaded images
+function handleComplete() 
+{
 	backgroundImage = preload.getResult("background");
-	ballImage = preload.getResult("ball");
 	canvas.addEventListener("click", onClickStart);
 }
 
-function onClickStart(event) {
+function onClickStart(event) 
+{
 	start();
 	canvas.removeEventListener("click", onClickStart);
 }
 
-function start() {
+function start() 
+{
 	background = new createjs.Bitmap(backgroundImage);
 	stage.addChild(background);
-
 
 	// CREATE ARRAY OF SHAPE OBJECTS
 	shapes = new Array();
 	for (i=0;i<2;i++)
 	{
 		var theShape = new createjs.Shape();
-		theShape.graphics.setStrokeStyle(1)
+
+		// http://blog.createjs.com/new-command-approach-to-easeljs-graphics/
+		fillCommand = theShape.graphics.beginFill("yellow").command;
+
+		// http://www.createjs.com/docs/easeljs/classes/Graphics.html#method_setStrokeStyle
+		theShape.graphics.setStrokeStyle(3, "round", "round")
 			.beginStroke(createjs.Graphics.getRGB(0, 0, 0))
-			.beginFill(createjs.Graphics.getRGB(255,255,51))
-			.drawCircle(0, 0, 20)
-			.moveTo(0,-20)
+			.drawCircle(0, 0, radius)
+			.moveTo(0,-radius)
 			.lineTo(0,0)
 			.moveTo(0,0)
-			.lineTo(20,0);
-		// theShape.x = 250;
-		// theShape.y = 40;
-		//stage.addChild(theShape);
+			.lineTo(radius,0);
 
-		//shape.name = "shape" + i;
-
-		// TODO - set all values for object
-		theShape.setBounds(-20,-20,40,40);
+		theShape.setBounds(-radius,-radius,radius*2,radius*2);
 
 		sObject = new ShapeObject();
-		//sObject.initialize("shape"+i, theShape);
 		sObject.shape = theShape;
 		sObject.name = "shape"+i;
-		thisColor = colors[randomRange(colors.length)];
-		sObject.color = thisColor;  // setting to a string WORKS??  WTF??
+		sObject.color = randomColor();
+		sObject.command = fillCommand;
+		sObject.rotation = (randomRange(3)+1)*90;
+
 		console.log('start:color:'+sObject.color);
 		shapes.push(sObject);
  
+ 		// TODO draw tween upon initialize
+ 		// http://andysaia.com/blog/tweenjs/
 		(function(index) {
 	        shapes[index].shape.addEventListener("click", function() {
-	           shapes[index].shape.scaleX = 2.0;
+	           	createjs.Tween.get(shapes[index].shape)
+      				.to({ rotation: shapes[index].rotation }, 1000, createjs.Ease.backInOut);
+  				shapes[index].rotation += 90;
 	         })
 		})(i);
-
 	}	
 
 	drawShapes();
 
-	enableCache();
-
-	//startLabel = new createjs.Text("","18px Verdana","red");
-	//stage.addChild(startLabel);
-
-	// to get onMouseOver & onMouseOut events, we need to enable them on the stage:
-	//stage.enableMouseOver();
-	
-	// output = new createjs.Text("Test press, click, doubleclick, mouseover, and mouseout", "14px Arial", "white");
-	// output.x = output.y = 10;
-	// stage.addChild(output);
-
-	// Need to generate the images and store the values in the object
-	// Store so they can be accessed efficiently later via touch events
-	// wheel[i][j] = new wheelObject(i,j,randomRange(4)+1,randomColor());
-
-	balls = new Array();
-	for (i=0;i<2;i++)
-	{
-		ball = new createjs.Bitmap(ballImage);
-
-		// function bindClick(i) {
-		//    return function(){
-		//             console.log("you clicked region number " + i);
-		//           });
-		// }
-
-		ball.name = "ball" + i;
-
-		// alert ('constructor name: ' + ball.constructor.name);  // undefined
-		// alert ('typeof ball: ' + typeof ball);  // object
-		// alert ('typeof Bitmap: ' + typeof Bitmap);  // undefined
-
-		// TODO USE THIS WHEN LOADING
-		b = ball.getBounds();
-		newX = b.x + (b.width * i);
-		ball.x = newX;
-
-		balls.push(ball);
-
-		//ball.cache(newX, b.y, b.width, b.height);
-		//startLabel.text += " i:"+i+":x:"+newX;
-
-		(function(index) {
-		        balls[index].addEventListener("click", function() {
-		           balls[index].scaleX = 0.5;
-		         })
-		   })(i);
-
-		stage.addChild(balls[i]);
-
-		// ball.addEventListener("click", onBallClick);
-		//ball.on("click", onBallClick);
-		// Need to track each separately - hash array??
-
-		//balls[i].addEventListener("click", onBallClick(i));
-
-		// balls[i].on("click", handleMouseEvent);
-		// balls[i].on("dblclick", handleMouseEvent);
-		// balls[i].on("mouseover", handleMouseEvent);
-		// balls[i].on("mouseout", handleMouseEvent);		
-
-		// http://stackoverflow.com/questions/17981437/how-to-add-event-listeners-to-an-array-of-objects
-	}
-
 	//enableCache();
 
-	createjs.Ticker.setFPS(1);		
-	createjs.Ticker.on("tick", tick);
+	 createjs.Ticker.setFPS(30);		
+	 createjs.Ticker.on("tick", tick);
 
 }
 
-function onBallClick(i) {
-	debugger;
-	balls[i].scaleX = 0.5;
-	 // var matrix = new createjs.ColorMatrix().adjustHue(100);
-	 // ball.filters = [
-	 //     new createjs.ColorMatrixFilter(matrix)
-	 // ];
-}
-
-// http://www.createjs.com/tutorials/Mouse%20Interaction/events.html
-function handleMouseEvent(evt) {
-	output.text = "evt.target: "+evt.target+", evt.type: "+evt.type;
-	
-	// to save CPU, we're only updating when we need to, instead of on a tick:1
-	stage.update();
-}
-
-function enableCache() {
-
-		// var color  = '0x'+(Math.random()*0xFFFFFF<<0).toString(16);
+function enableCache() 
+{
 	for (i=0;i<2;i++)
 	{
 		// Draw object
 		s = shapes[i];
 		b = s.shape.getBounds();	
+		f = s.command;
 		console.log('enableCache:color:'+s.color);
-		var filter = new createjs.ColorFilter(i,1,1,1);
-
-		s.shape.filters = [ filter ];
+		f.style = s.color;
 		s.shape.cache(b.x, b.y, b.width, b.height);
 
 	}
 }
-
-	function toggleCache(value) {
-
-
-		// iterate all the children except the fpsLabel, and set up the cache:
-		var l = stage.getNumChildren() - 1;
-
-		for (var i = 0; i < l; i++) {
-			var shape = stage.getChildAt(i);
-			if (value) {
-				shape.cache(-radius, -radius, radius * 2, radius * 2);
-			} else {
-				shape.uncache();
-			}
-		}
-	}
-
-
-
-// https://toddmotto.com/understanding-javascript-types-and-reliable-type-checking/
-// http://stackoverflow.com/questions/1249531/how-to-get-a-javascript-objects-class
-var getType = function (elem) {
-  return Object.prototype.toString.call(elem);
-};
 
 function drawShapes () 
 {
@@ -295,35 +113,29 @@ function drawShapes ()
 	{
 		// Draw object
 		s = shapes[i];
-		console.log('drawShapes:color:'+s.color);
+		console.log('enableCache:color:'+s.color);
 
 		s.shape.x = pos;
 		s.shape.y = 40;
+
+		s.command.style = s.color;
 
 		stage.addChild(s.shape);
 		pos = 250;
 
 	}
+
+	stage.update();
 }
 
-function drawObjects() {
-	const xDIM = 10;
-	const yDIM = 10;
-	var wheel = new Array();
-
-	for(var i=0;i<xDIM;i++)
-	{
-		wheel[i] = new Array();
-		for(var j=0;j<yDIM;j++)
-		{
-			wheel[i][j] = new wheelObject(i,j,randomRange(4)+1,randomColor());
-		// document.write('xPos: ' + wheel[i][j].xPos); 
-		// document.write(', yPos: ' + wheel[i][j].yPos); 
-		// document.write(', rotation: ' + wheel[i][j].rotation); 
-		// document.write(', color: ' + wheel[i][j].color); 
-		// document.write('<br/>');
-		}
-	}
+function randomColor() {
+	var colors = [
+		'orange',
+		'red',
+		'yellow',
+		'green'
+	];
+	return colors[randomRange(colors.length)];
 }
 
 function randomRange(max) {
@@ -331,23 +143,7 @@ function randomRange(max) {
 	return Math.floor(Math.random()*max);
 }
 
-function tick(event) {
-
+function tick(event) 
+{
     stage.update(event);	//update the stage
 }	
-
-function updateCache() {
-	numChildren = stage.getNumChildren();
-
-	for (i = 0; i < numChildren; i++) {
-		shape = stage.getChildAt(i);
-
-		if (getType(shape) === '[object Object]') {
-			shape.filters = [
-	 	     	new createjs.ColorFilter(0,0,0,1, r(255),r(255),r(255),0)
-	 	     ];
-	 	     shape.updateCache();
-		}
-	}
-
-}
