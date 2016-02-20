@@ -1,7 +1,11 @@
 var ShapeObject = function() 
 {
-    	this.clock;
-    	this.color;
+	this.clock;
+	this.color;
+	this.rotation;
+	this.x;
+	this.y;
+	this.circle;
 };
 
 var clock1 = 3; // 0011
@@ -10,22 +14,18 @@ var clock3 = 9;  // 1001
 var clock4 = 12; // 1100
 var GRIDX = 2;
 var GRIDY = 2;
+var pos = 0;
 var arr;
+var circle;
+var stage;
 
 function init()
 {
+	stage = new createjs.Stage("bleedCanvas");
 	arr = createMatrix(GRIDX,GRIDY);
-
-	// Create
-	for (i=0;i<arr.length;i++) {
-		for (j=0;j<arr[i].length;j++) {
-			s = new ShapeObject();
-			s.clock = (i+j+1)*3;
-			s.color = randomColor();
-			arr[i][j] = s;
 	
-		}
-	}
+	// place the circle on the display
+	createCircles(); 
 		
 	// Simulate check
 	for (i=0;i<arr.length;i++) {
@@ -34,7 +34,69 @@ function init()
 		}
 	}
 
-	document.write(makeTableHTML(arr));
+	//createCircle();
+	//document.write(makeTableHTML(arr));
+
+	createjs.Ticker.setFPS(30);
+	createjs.Ticker.addEventListener("tick", tick);
+}
+
+function createCircles() {
+
+	radius = 80;
+
+	for (i=0;i<arr.length;i++) {
+		for (j=0;j<arr[i].length;j++) {
+			s = new ShapeObject();
+			s.color = randomColor();
+
+			// Need to sync clock and rotation values
+			s.clock = (i+j+1)*3;
+			s.rotation = 90 * r(3);
+			
+			s.x = i;
+			s.y = j;
+	
+			// place the circle on the display
+			circle = new createjs.Shape();
+
+			circle.graphics.setStrokeStyle(3, "round", "round")
+				.beginFill(s.color)
+				.beginStroke(createjs.Graphics.getRGB(0, 0, 0))
+				.drawCircle(0, 0, radius)
+				.moveTo(0,-radius)
+				.lineTo(0,0)
+				.moveTo(0,0)
+				.lineTo(radius,0);
+
+			// position each in their "array" position
+			// add radius since the registration point is at the center
+			// for purposes of rotation
+			circle.x = s.x * radius * 2 + radius;
+			circle.y = s.y * radius * 2 + radius;
+
+			//circle.addEventListener("click", onclick);
+
+			circle.shadow = new createjs.Shadow("#000000", 4, 7, 10);
+
+			s.circle = circle;
+
+			arr[i][j] = s;
+
+			// Need to sync clock and rotation values
+			(function(x,y) {
+		        arr[x][y].circle.addEventListener("click", function() {
+		           	createjs.Tween.get(arr[x][y].circle)
+		  				.to({ rotation: arr[x][y].rotation }, 1000, createjs.Ease.backInOut);
+						arr[x][y].rotation += 90;
+		         })
+			})(i,j);
+
+			stage.addChild(circle);
+		}
+	}
+
+
 }
 
 function createMatrix(length) {
@@ -56,10 +118,10 @@ function randomColor() {
 		'yellow',
 		'green'
 	];
-	return colors[randomRange(colors.length)];
+	return colors[r(colors.length)];
 }
 
-function randomRange(max) {
+function r(max) {
 	// return 0 based range of values up to max
 	return Math.floor(Math.random()*max);
 }
@@ -161,4 +223,29 @@ function makeTableHTML(myArray) {
     result += '</table>';
 
     return result;
+}
+
+function onclick() {
+	circle.removeEventListener("click", onclick);
+	pos += 90;
+	rotateCircle(pos);
+}
+
+function rotateCircle(pos) {
+	createjs.Tween.get(circle)
+      .to({ rotation: pos }, 500, createjs.Ease.backInOut)
+      .call(tweenComplete);
+}
+
+function tweenComplete() {
+	console.log('rotation complete');
+	circle.addEventListener("click", onclick);
+}
+
+function tick(event) {
+	// circle.alpha = 0.5;
+	// if (circle.hitTest(stage.mouseX, stage.mouseY)) { 
+	// 	circle.alpha = 1; 
+	// }
+	stage.update(event);
 }
