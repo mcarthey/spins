@@ -6,6 +6,7 @@ var ShapeObject = function()
 	this.x;
 	this.y;
 	this.circle;
+	this.command;
 };
 
 var clock1 = 3; // 0011
@@ -28,11 +29,13 @@ function init()
 	createCircles(); 
 		
 	// Simulate check
-	for (i=0;i<arr.length;i++) {
-		for (j=0;j<arr[i].length;j++) {
-			checkConnection(i,j); // pass in coordinates
-		}
-	}
+	// for (i=0;i<arr.length;i++) {
+	// 	for (j=0;j<arr[i].length;j++) {
+	// 		checkConnection(i,j); // pass in coordinates
+	// 	}
+	// }
+
+	initRotation();
 
 	//createCircle();
 	//document.write(makeTableHTML(arr));
@@ -51,17 +54,19 @@ function createCircles() {
 			s.color = randomColor();
 
 			// Need to sync clock and rotation values
-			s.clock = (i+j+1)*3;
 			s.rotation = 90 * r(3);
-			
+			// s.clock = (i+j+1)*3;
+			s.clock = getClock(s.rotation);
+			console.log("i:"+i+":j:"+j+":rotation:"+s.rotation);
 			s.x = i;
 			s.y = j;
 	
 			// place the circle on the display
 			circle = new createjs.Shape();
 
+			fillCommand = circle.graphics.beginFill(s.color).command;
+
 			circle.graphics.setStrokeStyle(3, "round", "round")
-				.beginFill(s.color)
 				.beginStroke(createjs.Graphics.getRGB(0, 0, 0))
 				.drawCircle(0, 0, radius)
 				.moveTo(0,-radius)
@@ -80,23 +85,66 @@ function createCircles() {
 			circle.shadow = new createjs.Shadow("#000000", 4, 7, 10);
 
 			s.circle = circle;
+			s.command = fillCommand;
 
 			arr[i][j] = s;
 
 			// Need to sync clock and rotation values
 			(function(x,y) {
-		        arr[x][y].circle.addEventListener("click", function() {
-		           	createjs.Tween.get(arr[x][y].circle)
-		  				.to({ rotation: arr[x][y].rotation }, 1000, createjs.Ease.backInOut);
-						arr[x][y].rotation += 90;
-		         })
-			})(i,j);
+		        var listener = arr[x][y].circle.addEventListener("click", tweenClick);
 
+		        function tweenComplete() {
+		        	console.log('tween complete');
+		        	arr[x][y].circle.addEventListener("click", tweenClick);
+		        }
+
+		        function tweenClick() {
+    	        	arr[x][y].circle.removeEventListener("click", listener);
+					arr[x][y].rotation += 90;
+					arr[x][y].clock = getClock(arr[x][y].rotation);
+    	           	createjs.Tween.get(arr[x][y].circle)
+    	  				.to({ rotation: arr[x][y].rotation }, 500, createjs.Ease.backInOut)
+    	  				.call(tweenComplete);
+					console.log("rotation:"+arr[x][y].rotation);
+					console.log("clock:"+arr[x][y].clock);
+
+					checkConnection(x,y);
+		        }
+
+			})(i,j);
+ 
 			stage.addChild(circle);
 		}
 	}
+}
 
+function initRotation() {
+	for (i=0;i<arr.length;i++) {
+		for (j=0;j<arr[i].length;j++) {
+			console.log('i:'+i+':j:'+j+':rotation:'+arr[i][j].rotation);
+         	createjs.Tween.get(arr[i][j].circle)
+         		.wait(500)
+				.to({ rotation: arr[i][j].rotation }, 500, createjs.Ease.backInOut)
+				.call(tweenComplete);
 
+		}
+	}
+}
+
+function getClock(rotation) {
+	rotation %= 360;
+	switch(rotation) {
+	    case 0:
+	    	return 12;
+	    case 90:
+	    	return 6;
+	    case 180:
+	    	return 3;
+	    case 270:
+	    	return 9;
+	    default:
+	    	return 0;
+	}
 }
 
 function createMatrix(length) {
@@ -136,6 +184,7 @@ function checkConnection(x,y) {
 
 	s = arr[x][y];
 
+	// BUG Need to update color after change
 	c1 = pad(dec2bin(s.clock), 4);
 	console.log('touched clock:'+c1+ ' at ' + x + ','+ y);
 
@@ -146,6 +195,9 @@ function checkConnection(x,y) {
 		if (newX >= 0) {
 			c2 = arr[newX][y].clock;
 			connected = isConnected(s.clock, c2, left);
+			if (connected) {
+				arr[newX][y].command.style = s.color;
+			}
 			console.log(c1 +' at ' + x + ',' + y + ' isConnected to ' + pad(dec2bin(c2), 4) + ' at ' + newX + ',' + y +'?:'+connected);
 		}
 		else {
@@ -160,6 +212,9 @@ function checkConnection(x,y) {
 		if (newY < GRIDY) {
 			c2 = arr[x][newY].clock;
 			connected = isConnected(s.clock, c2, below);
+			if (connected) {
+				arr[x][newY].command.style = s.color;
+			}
 			console.log(c1 +' at ' + x + ',' + y + ' isConnected to ' + pad(dec2bin(c2), 4) + ' at ' + x + ',' + newY +'?:'+connected);
 		}
 		else {
@@ -174,6 +229,9 @@ function checkConnection(x,y) {
 		if (newX < GRIDX) {
 			c2 = arr[newX][y].clock;
 			connected = isConnected(s.clock, c2, right);
+			if (connected) {
+				arr[newX][y].command.style = s.color;
+			}
 			console.log(c1 +' at ' + x + ',' + y + ' isConnected to ' + pad(dec2bin(c2), 4) + ' at ' + newX + ',' + y +'?:'+connected);
 		}
 		else {
@@ -187,6 +245,9 @@ function checkConnection(x,y) {
 		if (newY >= 0) {
 			c2 = arr[x][newY].clock;
 			connected = isConnected(s.clock, c2, above);
+			if (connected) {
+				arr[x][newY].command.style = s.color;
+			}
 			console.log(c1 +' at ' + x + ',' + y + ' isConnected to ' + pad(dec2bin(c2), 4) + ' at ' + x + ',' + newY +'?:'+connected);
 		}
 		else {
@@ -231,16 +292,15 @@ function onclick() {
 	rotateCircle(pos);
 }
 
-function rotateCircle(pos) {
-	createjs.Tween.get(circle)
-      .to({ rotation: pos }, 500, createjs.Ease.backInOut)
-      .call(tweenComplete);
-}
+// function rotateCircle(pos) {
+// 	createjs.Tween.get(circle)
+//       .to({ rotation: pos }, 500, createjs.Ease.backInOut)
+//       .call(tweenComplete);
+// }
 
-function tweenComplete() {
-	console.log('rotation complete');
-	circle.addEventListener("click", onclick);
-}
+ function tweenComplete() {
+ 	console.log('rotation complete');
+ }
 
 function tick(event) {
 	// circle.alpha = 0.5;
