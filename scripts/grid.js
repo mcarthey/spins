@@ -197,6 +197,7 @@ function checkConnection(x,y) {
 			connected = isConnected(s.clock, c2, left);
 			if (connected) {
 				arr[newX][y].command.style = s.color;
+				arr[newX][y].color = s.color;
 			}
 			console.log(c1 +' at ' + x + ',' + y + ' isConnected to ' + pad(dec2bin(c2), 4) + ' at ' + newX + ',' + y +'?:'+connected);
 		}
@@ -214,6 +215,7 @@ function checkConnection(x,y) {
 			connected = isConnected(s.clock, c2, below);
 			if (connected) {
 				arr[x][newY].command.style = s.color;
+				arr[x][newY].color = s.color;
 			}
 			console.log(c1 +' at ' + x + ',' + y + ' isConnected to ' + pad(dec2bin(c2), 4) + ' at ' + x + ',' + newY +'?:'+connected);
 		}
@@ -231,6 +233,7 @@ function checkConnection(x,y) {
 			connected = isConnected(s.clock, c2, right);
 			if (connected) {
 				arr[newX][y].command.style = s.color;
+				arr[newX][y].color = s.color;
 			}
 			console.log(c1 +' at ' + x + ',' + y + ' isConnected to ' + pad(dec2bin(c2), 4) + ' at ' + newX + ',' + y +'?:'+connected);
 		}
@@ -247,6 +250,7 @@ function checkConnection(x,y) {
 			connected = isConnected(s.clock, c2, above);
 			if (connected) {
 				arr[x][newY].command.style = s.color;
+				arr[x][newY].color = s.color;
 			}
 			console.log(c1 +' at ' + x + ',' + y + ' isConnected to ' + pad(dec2bin(c2), 4) + ' at ' + x + ',' + newY +'?:'+connected);
 		}
