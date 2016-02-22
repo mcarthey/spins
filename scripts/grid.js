@@ -25,20 +25,9 @@ function init()
 	stage = new createjs.Stage("bleedCanvas");
 	arr = createMatrix(GRIDX,GRIDY);
 	
-	// place the circle on the display
+	// place the circle on the display and setup the gameplay
 	createCircles(); 
-		
-	// Simulate check
-	// for (i=0;i<arr.length;i++) {
-	// 	for (j=0;j<arr[i].length;j++) {
-	// 		checkConnection(i,j); // pass in coordinates
-	// 	}
-	// }
-
 	initRotation();
-
-	//createCircle();
-	//document.write(makeTableHTML(arr));
 
 	createjs.Ticker.setFPS(30);
 	createjs.Ticker.addEventListener("tick", tick);
@@ -53,9 +42,8 @@ function createCircles() {
 			s = new ShapeObject();
 			s.color = randomColor();
 
-			// Need to sync clock and rotation values
 			s.rotation = 90 * r(3);
-			// s.clock = (i+j+1)*3;
+			// sync clock and rotation values
 			s.clock = getClock(s.rotation);
 			console.log("i:"+i+":j:"+j+":rotation:"+s.rotation);
 			s.x = i;
@@ -79,8 +67,6 @@ function createCircles() {
 			// for purposes of rotation
 			circle.x = s.x * radius * 2 + radius;
 			circle.y = s.y * radius * 2 + radius;
-
-			//circle.addEventListener("click", onclick);
 
 			circle.shadow = new createjs.Shadow("#000000", 4, 7, 10);
 
@@ -120,7 +106,6 @@ function createCircles() {
 
 		        	s = arr[x][y];
 
-		        	// BUG Need to update color after change
 		        	c1 = pad(dec2bin(s.clock), 4);
 		        	console.log('touched clock:'+c1+ ' at ' + x + ','+ y);
 
@@ -210,7 +195,6 @@ function initRotation() {
          	createjs.Tween.get(arr[i][j].circle)
          		.wait(500)
 				.to({ rotation: arr[i][j].rotation }, 500, createjs.Ease.backInOut);
-				// .call(tweenComplete);
 		}
 	}
 }
@@ -258,93 +242,6 @@ function r(max) {
 	return Math.floor(Math.random()*max);
 }
 
-// function checkConnection(x,y) {
-// 	var left = 1;
-// 	var below = 2;
-// 	var right = 4;
-// 	var above = 8;
-
-// 	var newX, newY;
-
-// 	s = arr[x][y];
-
-// 	// BUG Need to update color after change
-// 	c1 = pad(dec2bin(s.clock), 4);
-// 	console.log('touched clock:'+c1+ ' at ' + x + ','+ y);
-
-// 	bit = s.clock & left;
-// 	if (bit > 0) {
-// 		console.log('checking left'); // -x
-// 		newX = x - 1;
-// 		if (newX >= 0) {
-// 			c2 = arr[newX][y].clock;
-// 			connected = isConnected(s.clock, c2, left);
-// 			if (connected) {
-// 				arr[newX][y].command.style = s.color;
-// 				arr[newX][y].color = s.color;
-// 			}
-// 			console.log(c1 +' at ' + x + ',' + y + ' isConnected to ' + pad(dec2bin(c2), 4) + ' at ' + newX + ',' + y +'?:'+connected);
-// 		}
-// 		else {
-// 			console.log('isConnected?:N/A');
-// 		}
-// 	}
-
-// 	bit = s.clock & below;
-// 	if (bit > 0) {
-// 		console.log('checking below'); // +y
-// 		newY = y + 1;
-// 		if (newY < GRIDY) {
-// 			c2 = arr[x][newY].clock;
-// 			connected = isConnected(s.clock, c2, below);
-// 			if (connected) {
-// 				arr[x][newY].command.style = s.color;
-// 				arr[x][newY].color = s.color;
-// 			}
-// 			console.log(c1 +' at ' + x + ',' + y + ' isConnected to ' + pad(dec2bin(c2), 4) + ' at ' + x + ',' + newY +'?:'+connected);
-// 		}
-// 		else {
-// 			console.log('isConnected?:N/A');
-// 		}		
-// 	}
-
-// 	bit = s.clock & right;
-// 	if (bit > 0) {
-// 		console.log('checking right'); // +x
-// 		newX = x + 1;
-// 		if (newX < GRIDX) {
-// 			c2 = arr[newX][y].clock;
-// 			connected = isConnected(s.clock, c2, right);
-// 			if (connected) {
-// 				arr[newX][y].command.style = s.color;
-// 				arr[newX][y].color = s.color;
-// 			}
-// 			console.log(c1 +' at ' + x + ',' + y + ' isConnected to ' + pad(dec2bin(c2), 4) + ' at ' + newX + ',' + y +'?:'+connected);
-// 		}
-// 		else {
-// 			console.log('isConnected?:N/A');
-// 		}
-// 	}
-// 	bit = s.clock & above;
-// 	if (bit > 0) {
-// 		console.log('checking above'); // -y
-// 		newY = y - 1;
-// 		if (newY >= 0) {
-// 			c2 = arr[x][newY].clock;
-// 			connected = isConnected(s.clock, c2, above);
-// 			if (connected) {
-// 				arr[x][newY].command.style = s.color;
-// 				arr[x][newY].color = s.color;
-// 			}
-// 			console.log(c1 +' at ' + x + ',' + y + ' isConnected to ' + pad(dec2bin(c2), 4) + ' at ' + x + ',' + newY +'?:'+connected);
-// 		}
-// 		else {
-// 			console.log('isConnected?:N/A');
-// 		}		
-
-// 	}
-// }
-
 function isConnected(clock1, clock2, direction) {
 	var connected = (clock2 * 4 % 15 & clock1 & direction) != 0;
 	return connected;
@@ -359,36 +256,6 @@ function pad(n, width, z) {
   n = n + '';
   return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
 }
-
-function makeTableHTML(myArray) {
-    var result = '<table border=1>';
-    for(var i=0; i<myArray.length; i++) {
-        result += '<tr>';
-        for(var j=0; j<myArray[i].length; j++){
-            result += '<td>'+'<img src="images/' + pad(dec2bin(myArray[i][j].clock),4)+ '.png"></img>'+'</td>';
-        }
-        result += '</tr>';
-    }
-    result += '</table>';
-
-    return result;
-}
-
-// function onclick() {
-// 	circle.removeEventListener("click", onclick);
-// 	pos += 90;
-// 	rotateCircle(pos);
-// }
-
-// function rotateCircle(pos) {
-// 	createjs.Tween.get(circle)
-//       .to({ rotation: pos }, 500, createjs.Ease.backInOut)
-//       .call(tweenComplete);
-// }
-
- // function tweenComplete() {
- // 	console.log('rotation complete');
- // }
 
 function tick(event) {
 	// circle.alpha = 0.5;
