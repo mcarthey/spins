@@ -95,6 +95,7 @@ function createCircles() {
 
 		        function tweenComplete() {
 		        	console.log('tween complete');
+					checkConnection(x,y);
 		        	arr[x][y].circle.addEventListener("click", tweenClick);
 		        }
 
@@ -107,10 +108,94 @@ function createCircles() {
     	  				.call(tweenComplete);
 					console.log("rotation:"+arr[x][y].rotation);
 					console.log("clock:"+arr[x][y].clock);
-
-					checkConnection(x,y);
 		        }
 
+		        function checkConnection(x,y) {
+		        	var left = 1;
+		        	var below = 2;
+		        	var right = 4;
+		        	var above = 8;
+
+		        	var newX, newY;
+
+		        	s = arr[x][y];
+
+		        	// BUG Need to update color after change
+		        	c1 = pad(dec2bin(s.clock), 4);
+		        	console.log('touched clock:'+c1+ ' at ' + x + ','+ y);
+
+		        	bit = s.clock & left;
+		        	if (bit > 0) {
+		        		console.log('checking left'); // -x
+		        		newX = x - 1;
+		        		if (newX >= 0) {
+		        			c2 = arr[newX][y].clock;
+		        			connected = isConnected(s.clock, c2, left);
+		        			if (connected) {
+		        				arr[newX][y].command.style = s.color;
+		        				arr[newX][y].color = s.color;
+		        			}
+		        			console.log(c1 +' at ' + x + ',' + y + ' isConnected to ' + pad(dec2bin(c2), 4) + ' at ' + newX + ',' + y +'?:'+connected);
+		        		}
+		        		else {
+		        			console.log('isConnected?:N/A');
+		        		}
+		        	}
+
+		        	bit = s.clock & below;
+		        	if (bit > 0) {
+		        		console.log('checking below'); // +y
+		        		newY = y + 1;
+		        		if (newY < GRIDY) {
+		        			c2 = arr[x][newY].clock;
+		        			connected = isConnected(s.clock, c2, below);
+		        			if (connected) {
+		        				arr[x][newY].command.style = s.color;
+		        				arr[x][newY].color = s.color;
+		        			}
+		        			console.log(c1 +' at ' + x + ',' + y + ' isConnected to ' + pad(dec2bin(c2), 4) + ' at ' + x + ',' + newY +'?:'+connected);
+		        		}
+		        		else {
+		        			console.log('isConnected?:N/A');
+		        		}		
+		        	}
+
+		        	bit = s.clock & right;
+		        	if (bit > 0) {
+		        		console.log('checking right'); // +x
+		        		newX = x + 1;
+		        		if (newX < GRIDX) {
+		        			c2 = arr[newX][y].clock;
+		        			connected = isConnected(s.clock, c2, right);
+		        			if (connected) {
+		        				arr[newX][y].command.style = s.color;
+		        				arr[newX][y].color = s.color;
+		        			}
+		        			console.log(c1 +' at ' + x + ',' + y + ' isConnected to ' + pad(dec2bin(c2), 4) + ' at ' + newX + ',' + y +'?:'+connected);
+		        		}
+		        		else {
+		        			console.log('isConnected?:N/A');
+		        		}
+		        	}
+		        	bit = s.clock & above;
+		        	if (bit > 0) {
+		        		console.log('checking above'); // -y
+		        		newY = y - 1;
+		        		if (newY >= 0) {
+		        			c2 = arr[x][newY].clock;
+		        			connected = isConnected(s.clock, c2, above);
+		        			if (connected) {
+		        				arr[x][newY].command.style = s.color;
+		        				arr[x][newY].color = s.color;
+		        			}
+		        			console.log(c1 +' at ' + x + ',' + y + ' isConnected to ' + pad(dec2bin(c2), 4) + ' at ' + x + ',' + newY +'?:'+connected);
+		        		}
+		        		else {
+		        			console.log('isConnected?:N/A');
+		        		}		
+
+		        	}
+		        }
 			})(i,j);
  
 			stage.addChild(circle);
@@ -124,9 +209,8 @@ function initRotation() {
 			console.log('i:'+i+':j:'+j+':rotation:'+arr[i][j].rotation);
          	createjs.Tween.get(arr[i][j].circle)
          		.wait(500)
-				.to({ rotation: arr[i][j].rotation }, 500, createjs.Ease.backInOut)
-				.call(tweenComplete);
-
+				.to({ rotation: arr[i][j].rotation }, 500, createjs.Ease.backInOut);
+				// .call(tweenComplete);
 		}
 	}
 }
@@ -174,92 +258,92 @@ function r(max) {
 	return Math.floor(Math.random()*max);
 }
 
-function checkConnection(x,y) {
-	var left = 1;
-	var below = 2;
-	var right = 4;
-	var above = 8;
+// function checkConnection(x,y) {
+// 	var left = 1;
+// 	var below = 2;
+// 	var right = 4;
+// 	var above = 8;
 
-	var newX, newY;
+// 	var newX, newY;
 
-	s = arr[x][y];
+// 	s = arr[x][y];
 
-	// BUG Need to update color after change
-	c1 = pad(dec2bin(s.clock), 4);
-	console.log('touched clock:'+c1+ ' at ' + x + ','+ y);
+// 	// BUG Need to update color after change
+// 	c1 = pad(dec2bin(s.clock), 4);
+// 	console.log('touched clock:'+c1+ ' at ' + x + ','+ y);
 
-	bit = s.clock & left;
-	if (bit > 0) {
-		console.log('checking left'); // -x
-		newX = x - 1;
-		if (newX >= 0) {
-			c2 = arr[newX][y].clock;
-			connected = isConnected(s.clock, c2, left);
-			if (connected) {
-				arr[newX][y].command.style = s.color;
-				arr[newX][y].color = s.color;
-			}
-			console.log(c1 +' at ' + x + ',' + y + ' isConnected to ' + pad(dec2bin(c2), 4) + ' at ' + newX + ',' + y +'?:'+connected);
-		}
-		else {
-			console.log('isConnected?:N/A');
-		}
-	}
+// 	bit = s.clock & left;
+// 	if (bit > 0) {
+// 		console.log('checking left'); // -x
+// 		newX = x - 1;
+// 		if (newX >= 0) {
+// 			c2 = arr[newX][y].clock;
+// 			connected = isConnected(s.clock, c2, left);
+// 			if (connected) {
+// 				arr[newX][y].command.style = s.color;
+// 				arr[newX][y].color = s.color;
+// 			}
+// 			console.log(c1 +' at ' + x + ',' + y + ' isConnected to ' + pad(dec2bin(c2), 4) + ' at ' + newX + ',' + y +'?:'+connected);
+// 		}
+// 		else {
+// 			console.log('isConnected?:N/A');
+// 		}
+// 	}
 
-	bit = s.clock & below;
-	if (bit > 0) {
-		console.log('checking below'); // +y
-		newY = y + 1;
-		if (newY < GRIDY) {
-			c2 = arr[x][newY].clock;
-			connected = isConnected(s.clock, c2, below);
-			if (connected) {
-				arr[x][newY].command.style = s.color;
-				arr[x][newY].color = s.color;
-			}
-			console.log(c1 +' at ' + x + ',' + y + ' isConnected to ' + pad(dec2bin(c2), 4) + ' at ' + x + ',' + newY +'?:'+connected);
-		}
-		else {
-			console.log('isConnected?:N/A');
-		}		
-	}
+// 	bit = s.clock & below;
+// 	if (bit > 0) {
+// 		console.log('checking below'); // +y
+// 		newY = y + 1;
+// 		if (newY < GRIDY) {
+// 			c2 = arr[x][newY].clock;
+// 			connected = isConnected(s.clock, c2, below);
+// 			if (connected) {
+// 				arr[x][newY].command.style = s.color;
+// 				arr[x][newY].color = s.color;
+// 			}
+// 			console.log(c1 +' at ' + x + ',' + y + ' isConnected to ' + pad(dec2bin(c2), 4) + ' at ' + x + ',' + newY +'?:'+connected);
+// 		}
+// 		else {
+// 			console.log('isConnected?:N/A');
+// 		}		
+// 	}
 
-	bit = s.clock & right;
-	if (bit > 0) {
-		console.log('checking right'); // +x
-		newX = x + 1;
-		if (newX < GRIDX) {
-			c2 = arr[newX][y].clock;
-			connected = isConnected(s.clock, c2, right);
-			if (connected) {
-				arr[newX][y].command.style = s.color;
-				arr[newX][y].color = s.color;
-			}
-			console.log(c1 +' at ' + x + ',' + y + ' isConnected to ' + pad(dec2bin(c2), 4) + ' at ' + newX + ',' + y +'?:'+connected);
-		}
-		else {
-			console.log('isConnected?:N/A');
-		}
-	}
-	bit = s.clock & above;
-	if (bit > 0) {
-		console.log('checking above'); // -y
-		newY = y - 1;
-		if (newY >= 0) {
-			c2 = arr[x][newY].clock;
-			connected = isConnected(s.clock, c2, above);
-			if (connected) {
-				arr[x][newY].command.style = s.color;
-				arr[x][newY].color = s.color;
-			}
-			console.log(c1 +' at ' + x + ',' + y + ' isConnected to ' + pad(dec2bin(c2), 4) + ' at ' + x + ',' + newY +'?:'+connected);
-		}
-		else {
-			console.log('isConnected?:N/A');
-		}		
+// 	bit = s.clock & right;
+// 	if (bit > 0) {
+// 		console.log('checking right'); // +x
+// 		newX = x + 1;
+// 		if (newX < GRIDX) {
+// 			c2 = arr[newX][y].clock;
+// 			connected = isConnected(s.clock, c2, right);
+// 			if (connected) {
+// 				arr[newX][y].command.style = s.color;
+// 				arr[newX][y].color = s.color;
+// 			}
+// 			console.log(c1 +' at ' + x + ',' + y + ' isConnected to ' + pad(dec2bin(c2), 4) + ' at ' + newX + ',' + y +'?:'+connected);
+// 		}
+// 		else {
+// 			console.log('isConnected?:N/A');
+// 		}
+// 	}
+// 	bit = s.clock & above;
+// 	if (bit > 0) {
+// 		console.log('checking above'); // -y
+// 		newY = y - 1;
+// 		if (newY >= 0) {
+// 			c2 = arr[x][newY].clock;
+// 			connected = isConnected(s.clock, c2, above);
+// 			if (connected) {
+// 				arr[x][newY].command.style = s.color;
+// 				arr[x][newY].color = s.color;
+// 			}
+// 			console.log(c1 +' at ' + x + ',' + y + ' isConnected to ' + pad(dec2bin(c2), 4) + ' at ' + x + ',' + newY +'?:'+connected);
+// 		}
+// 		else {
+// 			console.log('isConnected?:N/A');
+// 		}		
 
-	}
-}
+// 	}
+// }
 
 function isConnected(clock1, clock2, direction) {
 	var connected = (clock2 * 4 % 15 & clock1 & direction) != 0;
@@ -290,11 +374,11 @@ function makeTableHTML(myArray) {
     return result;
 }
 
-function onclick() {
-	circle.removeEventListener("click", onclick);
-	pos += 90;
-	rotateCircle(pos);
-}
+// function onclick() {
+// 	circle.removeEventListener("click", onclick);
+// 	pos += 90;
+// 	rotateCircle(pos);
+// }
 
 // function rotateCircle(pos) {
 // 	createjs.Tween.get(circle)
@@ -302,9 +386,9 @@ function onclick() {
 //       .call(tweenComplete);
 // }
 
- function tweenComplete() {
- 	console.log('rotation complete');
- }
+ // function tweenComplete() {
+ // 	console.log('rotation complete');
+ // }
 
 function tick(event) {
 	// circle.alpha = 0.5;
