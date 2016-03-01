@@ -7,14 +7,15 @@ var ShapeObject = function()
 	this.y;
 	this.circle;
 	this.command;
+	this.parent;
 };
 
 var clock1 = 3; // 0011
 var clock2 = 6; // 0110
 var clock3 = 9;  // 1001
 var clock4 = 12; // 1100
-var GRIDX = 2;
-var GRIDY = 2;
+var GRIDX = 3;
+var GRIDY = 3;
 var pos = 0;
 var arr;
 var circle;
@@ -105,81 +106,98 @@ function createCircles() {
 		        	var newX, newY;
 
 		        	s = arr[x][y];
-
-		        	c1 = pad(dec2bin(s.clock), 4);
-		        	console.log('touched clock:'+c1+ ' at ' + x + ','+ y);
-
+		        	
+		        	// not needed - already set when created
+		        	// s.x = x;
+		        	// s.y = y;
+debugger;
 		        	bit = s.clock & left;
 		        	if (bit > 0) {
-		        		console.log('checking left'); // -x
-		        		newX = x - 1;
+		        		newX = x - 1; // left
 		        		if (newX >= 0) {
 		        			c2 = arr[newX][y].clock;
-		        			connected = isConnected(s.clock, c2, left);
-		        			if (connected) {
-		        				arr[newX][y].command.style = s.color;
-		        				arr[newX][y].color = s.color;
-		        			}
-		        			console.log(c1 +' at ' + x + ',' + y + ' isConnected to ' + pad(dec2bin(c2), 4) + ' at ' + newX + ',' + y +'?:'+connected);
-		        		}
-		        		else {
-		        			console.log('isConnected?:N/A');
+
+	        				// if parent exists, check the values
+	        				// don't check the "source" circle when calling again 
+		        			// if ((typeof s.parent === 'undefined') || (typeof s.parent != 'undefined' && s.parent.x != s.x && s.parent.y != s.y)) { 
+		        			if ((typeof s.parent === 'undefined') 
+		        					|| (s.parent.x != newX && s.parent.y != y)) { // compare the one we're checking against the parent
+			        			connected = isConnected(s.clock, c2, left);
+			        			if (connected) {
+			        				arr[newX][y].command.style = s.color;
+			        				arr[newX][y].color = s.color;
+				
+						        	// Save parent for later comparison
+						        	// TODO - NEED TO NULL PARENT WHEN CONNECTION REMOVED
+						        	// SET parent TO NULL WHEN ALL CONNECTION CHECKS ARE COMPLETED
+						        	arr[newX][y].parent = s;
+			        				checkConnection(newX,y);
+			        			}
+			        		}
 		        		}
 		        	}
 
 		        	bit = s.clock & below;
 		        	if (bit > 0) {
-		        		console.log('checking below'); // +y
-		        		newY = y + 1;
+		        		newY = y + 1; // below
 		        		if (newY < GRIDY) {
 		        			c2 = arr[x][newY].clock;
-		        			connected = isConnected(s.clock, c2, below);
-		        			if (connected) {
-		        				arr[x][newY].command.style = s.color;
-		        				arr[x][newY].color = s.color;
-		        			}
-		        			console.log(c1 +' at ' + x + ',' + y + ' isConnected to ' + pad(dec2bin(c2), 4) + ' at ' + x + ',' + newY +'?:'+connected);
+
+		        			if ((typeof s.parent === 'undefined') 
+		        					|| (s.parent.x != x && s.parent.y != newY)) { // compare the one we're checking against the parent
+			        			connected = isConnected(s.clock, c2, below);
+			        			if (connected) {
+			        				arr[x][newY].command.style = s.color;
+			        				arr[x][newY].color = s.color;
+			        				// don't check the "source" circle when calling again
+			        				arr[x][newY].parent = s;
+			        				checkConnection(x,newY);
+			        			}
+			        		}
 		        		}
-		        		else {
-		        			console.log('isConnected?:N/A');
-		        		}		
 		        	}
 
 		        	bit = s.clock & right;
 		        	if (bit > 0) {
-		        		console.log('checking right'); // +x
-		        		newX = x + 1;
+		        		newX = x + 1; // right
 		        		if (newX < GRIDX) {
 		        			c2 = arr[newX][y].clock;
-		        			connected = isConnected(s.clock, c2, right);
-		        			if (connected) {
-		        				arr[newX][y].command.style = s.color;
-		        				arr[newX][y].color = s.color;
-		        			}
-		        			console.log(c1 +' at ' + x + ',' + y + ' isConnected to ' + pad(dec2bin(c2), 4) + ' at ' + newX + ',' + y +'?:'+connected);
-		        		}
-		        		else {
-		        			console.log('isConnected?:N/A');
+
+		        			if ((typeof s.parent === 'undefined') 
+		        					|| (s.parent.x != newX && s.parent.y != y)) { // compare the one we're checking against the parent
+			        			connected = isConnected(s.clock, c2, right);
+			        			if (connected) {
+			        				arr[newX][y].command.style = s.color;
+			        				arr[newX][y].color = s.color;
+			        				// don't check the "source" circle when calling again
+			        				arr[newX][y].parent = s;
+			        				checkConnection(newX,y);		        				
+			        			}
+			        		}
 		        		}
 		        	}
+
 		        	bit = s.clock & above;
 		        	if (bit > 0) {
-		        		console.log('checking above'); // -y
-		        		newY = y - 1;
+		        		newY = y - 1; // above
 		        		if (newY >= 0) {
 		        			c2 = arr[x][newY].clock;
-		        			connected = isConnected(s.clock, c2, above);
-		        			if (connected) {
-		        				arr[x][newY].command.style = s.color;
-		        				arr[x][newY].color = s.color;
-		        			}
-		        			console.log(c1 +' at ' + x + ',' + y + ' isConnected to ' + pad(dec2bin(c2), 4) + ' at ' + x + ',' + newY +'?:'+connected);
-		        		}
-		        		else {
-		        			console.log('isConnected?:N/A');
-		        		}		
 
+		        			if ((typeof s.parent === 'undefined') 
+		        					|| (s.parent.x != x && s.parent.y != newY)) { // compare the one we're checking against the parent
+			        			connected = isConnected(s.clock, c2, above);
+			        			if (connected) {
+			        				arr[x][newY].command.style = s.color;
+			        				arr[x][newY].color = s.color;
+			        				// don't check the "source" circle when calling again
+			        				arr[x][newY].parent = s;
+			        				checkConnection(x,newY);
+			        			}
+		        			}
+		        		}
 		        	}
+
+		        	// Upon exit reset values:  s.parent
 		        }
 			})(i,j);
  
