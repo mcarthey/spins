@@ -7,7 +7,8 @@ var ShapeObject = function()
 	this.y;
 	this.circle;
 	this.command;
-	this.parent;
+	this.label;
+	this.previous;
 };
 
 var clock1 = 3; // 0011
@@ -69,19 +70,28 @@ function createCircles() {
 			circle.x = s.x * radius * 2 + radius;
 			circle.y = s.y * radius * 2 + radius;
 
+			//creating the progress label
+			startLabel = new createjs.Text(s.clock,"18px Verdana","black");
+			startLabel.textAlign = "center";                                    
+			startLabel.x = circle.x - 20;
+			startLabel.y = circle.y - 25;
+
 			circle.shadow = new createjs.Shadow("#000000", 4, 7, 10);
 
 			s.circle = circle;
 			s.command = fillCommand;
+			s.label = startLabel; 
 
 			arr[i][j] = s;
 
 			// Need to sync clock and rotation values
 			(function(x,y) {
 		        var listener = arr[x][y].circle.addEventListener("click", tweenClick);
+		        var origin;
 
 		        function tweenComplete() {
 		        	console.log('tween complete');
+		        	origin = arr[x][y];
 					checkConnection(x,y);
 		        	arr[x][y].circle.addEventListener("click", tweenClick);
 		        }
@@ -90,6 +100,7 @@ function createCircles() {
     	        	arr[x][y].circle.removeEventListener("click", listener);
 					arr[x][y].rotation += 90;
 					arr[x][y].clock = getClock(arr[x][y].rotation);
+					arr[x][y].label.text = arr[x][y].clock;
     	           	createjs.Tween.get(arr[x][y].circle)
     	  				.to({ rotation: arr[x][y].rotation }, 500, createjs.Ease.backInOut)
     	  				.call(tweenComplete);
@@ -110,27 +121,29 @@ function createCircles() {
 		        	// not needed - already set when created
 		        	// s.x = x;
 		        	// s.y = y;
-debugger;
+
 		        	bit = s.clock & left;
 		        	if (bit > 0) {
 		        		newX = x - 1; // left
 		        		if (newX >= 0) {
 		        			c2 = arr[newX][y].clock;
 
-	        				// if parent exists, check the values
+	        				// if previous exists, check the values
 	        				// don't check the "source" circle when calling again 
-		        			// if ((typeof s.parent === 'undefined') || (typeof s.parent != 'undefined' && s.parent.x != s.x && s.parent.y != s.y)) { 
-		        			if ((typeof s.parent === 'undefined') 
-		        					|| (s.parent.x != newX && s.parent.y != y)) { // compare the one we're checking against the parent
+		        			// if ((typeof s.previous === 'undefined') || (typeof s.previous != 'undefined' && s.previous.x != s.x && s.previous.y != s.y)) { 
+		        			if ((typeof s.previous === 'undefined') 
+		        					|| ((s.previous.x != newX && s.previous.y != y)
+		        					&& (origin.x != newX && origin.y != y ))
+		        				) { // compare the one we're checking against the previous
 			        			connected = isConnected(s.clock, c2, left);
 			        			if (connected) {
 			        				arr[newX][y].command.style = s.color;
 			        				arr[newX][y].color = s.color;
 				
-						        	// Save parent for later comparison
-						        	// TODO - NEED TO NULL PARENT WHEN CONNECTION REMOVED
-						        	// SET parent TO NULL WHEN ALL CONNECTION CHECKS ARE COMPLETED
-						        	arr[newX][y].parent = s;
+						        	// Save previous for later comparison
+						        	// TODO - NEED TO NULL previous WHEN CONNECTION REMOVED
+						        	// SET previous TO NULL WHEN ALL CONNECTION CHECKS ARE COMPLETED
+						        	arr[newX][y].previous = s;
 			        				checkConnection(newX,y);
 			        			}
 			        		}
@@ -143,14 +156,16 @@ debugger;
 		        		if (newY < GRIDY) {
 		        			c2 = arr[x][newY].clock;
 
-		        			if ((typeof s.parent === 'undefined') 
-		        					|| (s.parent.x != x && s.parent.y != newY)) { // compare the one we're checking against the parent
+		        			if ((typeof s.previous === 'undefined') 
+		        					|| ((s.previous.x != x && s.previous.y != newY) 
+		        					&& (origin.x != x && origin.y != newY))
+		        				) { // compare the one we're checking against the previous
 			        			connected = isConnected(s.clock, c2, below);
 			        			if (connected) {
 			        				arr[x][newY].command.style = s.color;
 			        				arr[x][newY].color = s.color;
 			        				// don't check the "source" circle when calling again
-			        				arr[x][newY].parent = s;
+			        				arr[x][newY].previous = s;
 			        				checkConnection(x,newY);
 			        			}
 			        		}
@@ -163,14 +178,16 @@ debugger;
 		        		if (newX < GRIDX) {
 		        			c2 = arr[newX][y].clock;
 
-		        			if ((typeof s.parent === 'undefined') 
-		        					|| (s.parent.x != newX && s.parent.y != y)) { // compare the one we're checking against the parent
+		        			if ((typeof s.previous === 'undefined') 
+		        					|| ((s.previous.x != newX && s.previous.y != y)
+		        					&& (origin.x != newX && origin.y != y))
+		        					) { // compare the one we're checking against the previous
 			        			connected = isConnected(s.clock, c2, right);
 			        			if (connected) {
 			        				arr[newX][y].command.style = s.color;
 			        				arr[newX][y].color = s.color;
 			        				// don't check the "source" circle when calling again
-			        				arr[newX][y].parent = s;
+			        				arr[newX][y].previous = s;
 			        				checkConnection(newX,y);		        				
 			        			}
 			        		}
@@ -183,25 +200,28 @@ debugger;
 		        		if (newY >= 0) {
 		        			c2 = arr[x][newY].clock;
 
-		        			if ((typeof s.parent === 'undefined') 
-		        					|| (s.parent.x != x && s.parent.y != newY)) { // compare the one we're checking against the parent
+		        			if ((typeof s.previous === 'undefined') 
+		        					|| ((s.previous.x != x && s.previous.y != newY)
+		        					&& (origin.x != x && origin.y != newY))
+		        					) { // compare the one we're checking against the previous
 			        			connected = isConnected(s.clock, c2, above);
 			        			if (connected) {
 			        				arr[x][newY].command.style = s.color;
 			        				arr[x][newY].color = s.color;
 			        				// don't check the "source" circle when calling again
-			        				arr[x][newY].parent = s;
+			        				arr[x][newY].previous = s;
 			        				checkConnection(x,newY);
 			        			}
 		        			}
 		        		}
 		        	}
 
-		        	// Upon exit reset values:  s.parent
+		        	// Upon exit reset values:  s.previous
 		        }
 			})(i,j);
  
-			stage.addChild(circle);
+			stage.addChild(s.circle);
+			stage.addChild(s.label);            
 		}
 	}
 }
